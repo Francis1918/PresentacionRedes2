@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modernización Infraestructura Muebles Andinos S.A.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        /* --- ESTILOS PARA IMPRESIÓN (PDF) --- */
+        @media print {
+            /* 1. Ocultar elementos de navegación y decoración pesada */
+            .controls,
+            .progress-bar,
+            .background-shapes {
+                display: none !important;
+            }
+
+            /* 2. Restablecer el contenedor principal */
+            body, html, .slider-container {
+                width: 100%;
+                height: auto !important;
+                overflow: visible !important;
+                background: white !important;
+            }
+
+            /* 3. Transformar las diapositivas para que se vean una tras otra */
+            .slide {
+                position: relative !important; /* Ya no absoluta, para que no se encimen */
+                top: auto !important;
+                left: auto !important;
+                width: 100% !important;
+                height: 100vh !important; /* Forzar altura de página completa */
+                opacity: 1 !important;    /* Mostrar TODAS */
+                transform: none !important; /* Quitar efectos de escala */
+                display: flex !important;   /* Mantener el diseño flex */
+                page-break-after: always !important; /* Cortar página después de cada slide */
+                break-after: page;
+                border-bottom: 1px solid #eee; /* Opcional: separador sutil */
+            }
+
+            /* Evitar que la última página genere una hoja en blanco extra */
+            .slide:last-child {
+                page-break-after: auto !important;
+                break-after: auto;
+            }
+
+            /* 4. Ajustes visuales para papel */
+            .content-box {
+                box-shadow: none !important;
+                border: 1px solid #ddd; /* Borde suave para definir el área */
+                max-height: none !important; /* Permitir que el texto se expanda si es necesario */
+                backdrop-filter: none !important; /* Quitar blur para mejor renderizado */
+            }
+
+            /* Asegurar que los textos tengan buen contraste al imprimir */
+            h1, h2, h3, p, li {
+                color: #000 !important;
+                -webkit-text-fill-color: initial !important; /* Quitar degradados de texto */
+            }
+
+            /* Ajuste para las diapositivas con imagen */
+            .slide.image-layout {
+                display: grid !important;
+                height: 100vh !important;
+            }
+        }
+        :root {
+            --bg-base: #fdfbfb;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+
+            /* Paleta Viva y Profesional */
+            --accent-teal: #38b2ac;
+            /* Principal */
+            --accent-indigo: #5a67d8;
+            /* Secundario */
+            --accent-orange: #ed8936;
+            /* Detalles */
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-base);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* --- FONDO ANIMADO (LA "VIDA") --- */
+        .background-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: rgba(56, 178, 172, 0.2);
+            /* Teal */
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: rgba(90, 103, 216, 0.2);
+            /* Indigo */
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            top: 40%;
+            left: 40%;
+            width: 30vw;
+            height: 30vw;
+            background: rgba(237, 137, 54, 0.15);
+            /* Orange */
+            animation-duration: 30s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(30px, 50px) scale(1.1);
+            }
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .slider-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            /* Encima del fondo */
+        }
+
+        /* --- DIAPOSITIVAS --- */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 40px 60px;
+            box-sizing: border-box;
+            opacity: 0;
+            transform: scale(0.98);
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        /* Contenedor de "Cristal" para el texto (Mejora lectura sobre el fondo) */
+        .content-box {
+            background: var(--glass-bg);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--glass-border);
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* --- TIPOGRAFÍA --- */
+        h1 {
+            font-size: 3.5rem;
+            margin: 0 0 10px 0;
+            color: var(--text-primary);
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: -webkit-linear-gradient(0deg, var(--accent-indigo), var(--accent-teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 5px;
+            background: var(--accent-teal);
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: var(--accent-indigo);
+            margin-top: 0;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        p,
+        li {
+            font-size: 1.15rem;
+            /* Letra un poco más pequeña para que quepa más texto */
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            padding-left: 30px;
+            position: relative;
+            opacity: 0;
+            animation: slideInRight 0.5s forwards;
+        }
+
+        li::before {
+            content: "✓";
+            color: var(--accent-teal);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* Animación escalonada lista */
+        li:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        li:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        li:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        li:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        li:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        /* --- LAYOUT DIVIDIDO (TEXTO + IMAGEN) --- */
+        .slide.image-layout {
+            display: grid;
+            /* Ajuste Clave: 40% Texto / 60% Imagen (antes era 25/75) */
+            grid-template-columns: 40% 55%;
+            gap: 5%;
+            padding: 30px 50px;
+            align-items: center;
+        }
+
+        .slide.image-layout .content-box {
+            padding: 30px;
+            /* Menos padding en split screen */
+            background: rgba(255, 255, 255, 0.9);
+            /* Más opaco */
+            height: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+            /* Scroll si el texto es excesivo */
+        }
+
+        .slide.image-layout h2 {
+            font-size: 2rem;
+        }
+
+        .slide.image-layout li {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .img-placeholder {
+            width: 100%;
+            height: 85vh;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 3px dashed var(--accent-teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .img-placeholder:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-indigo);
+        }
+
+        .img-text {
+            color: var(--accent-indigo);
+            font-weight: 600;
+            padding: 20px;
+        }
+
+        /* --- TABLAS --- */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background: white;
+        }
+
+        th {
+            background: var(--accent-teal);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 1rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        /* --- PORTADA --- */
+        .cover-content {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            /* 3 por fila */
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .team-member {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            border-left: 4px solid var(--accent-indigo);
+        }
+
+        /* --- CONTROLES --- */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: var(--text-primary);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background: var(--accent-teal);
+            transform: scale(1.1);
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-teal), var(--accent-indigo));
+            width: 0%;
+            transition: width 0.3s;
+            z-index: 100;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="background-shapes">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="slider-container">
+        <div class="progress-bar" id="progressBar"></div>
+
+        <div class="slide active">
+            <div class="content-box cover-content">
+                <h3
+                    style="letter-spacing: 2px; text-transform: uppercase; font-size: 1rem; color: var(--accent-orange);">
+                    Proyecto Final IIB</h3>
+                <h1>Modernización de Infraestructura de Red</h1>
+                <h2 style="font-weight: 300; font-size: 1.8rem; border: none;">Muebles Andinos S.A.</h2>
+                <p style="margin-top: -10px;">Diseño e Implementación de Red Corporativa Convergente</p>
+
+                <div class="team-grid">
+                    <div class="team-member">Francis Bravo</div>
+                    <div class="team-member">Sebastián Chicaiza</div>
+                    <div class="team-member">David Cuasquer</div>
+                    <div class="team-member">Martin Cusme</div>
+                    <div class="team-member">Ismael Freire</div>
+                    <div class="team-member">Johann Pasquel</div>
+                </div>
+                <p style="margin-top: 30px; font-size: 0.9rem;">Enero 2026</p>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Agenda</h2>
+                <ul style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <li>Escenario Empresarial y Objetivos</li>
+                    <li>Arquitectura General de la Red</li>
+                    <li>Diseño de Sedes: GYE, UIO y STO</li>
+                    <li>Conectividad WAN y Enrutamiento OSPF</li>
+                    <li>Seguridad y Listas de Control de Acceso (ACL)</li>
+                    <li>Optimización de Enlaces (Spine-Leaf)</li>
+                    <li>Continuidad Operativa y Recuperación</li>
+                    <li>Telefonía IP y Validación</li>
+                    <li>Conclusiones</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Escenario Empresarial</h2>
+                <h3>Muebles Andinos S.A. – Contexto Operativo</h3>
+                <ul>
+                    <li><strong>Giro de Negocio:</strong> Fabricación y comercialización de mobiliario corporativo.</li>
+                    <li><strong>Desafío:</strong> Modernizar infraestructura para mejorar conectividad, seguridad y
+                        disponibilidad.</li>
+                    <li><strong>Sedes y Criticidad:</strong>
+                        <ul style="margin-top: 5px; font-size: 0.95em;">
+                            <li><span style="color:var(--accent-teal)">Guayaquil (Planta):</span> Criticidad Alta
+                                (24/7). Tráfico pesado Este-Oeste.</li>
+                            <li><span style="color:var(--accent-teal)">Quito (Matriz):</span> Criticidad Muy Alta.
+                                Gestión corporativa y Servidores.</li>
+                            <li><span style="color:var(--accent-teal)">Santo Domingo:</span> Criticidad Media. Nodo de
+                                tránsito y respaldo WAN.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Alcance:</strong> Red convergente (Datos + Voz) para usuarios críticos.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide image-layout">
+            <div class="content-box">
+                <h2>Arquitectura General</h2>
+                <h3>Visión Global</h3>
+                <ul>
+                    <li><strong>Interconexión WAN:</strong> Enlace principal (GYE-UIO) y respaldo (GYE-STO).</li>
+                    <li><strong>Protocolo OSPF:</strong> Multi-área para convergencia automática ante fallos.</li>
+                    <li><strong>Segmentación:</strong> VLANs funcionales separadas por departamento.</li>
+                    <li><strong>Servicios Integrados:</strong> Telefonía IP y transferencia segura.</li>
+                </ul>
+            </div>
+            <div style="width: 100%; height: 85vh; border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);">
+                <img src="topologia.png" alt="Diagrama Topología General" style="width: 100%; height: 100%; object-fit: contain; border-radius: 20px;">
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Diseño Guayaquil (Parte 1)</h2>
+                <h3>Arquitectura de Centro de Datos (Planta)</h3>
+                <ul>
+                    <li><strong>Modelo:</strong> Spine-Leaf (Capa 2 y Capa 3).</li>
+                    <li><strong>Justificación Técnica:</strong>
+                        <br>- Optimización del flujo "Este-Oeste" (común en manufactura moderna).
+                        <br>- Baja latencia y escalabilidad horizontal sencilla.
+                        <br>- Redundancia física total entre capas de acceso y agregación.
+                    </li>
+                    <li><strong>Hardware:</strong>
+                        <br>- <strong>Leaf:</strong> Switches L2 para acceso rápido de usuarios.
+                        <br>- <strong>Spine:</strong> Switches L3 para enrutamiento interno de alta velocidad.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide image-layout">
+            <div class="content-box">
+                <h2>Diseño Guayaquil (Parte 2)</h2>
+                <h3>Segmentación y Lógica</h3>
+                <ul>
+                    <li><strong>VLAN 10:</strong> Contabilidad (192.168.10.0/24)</li>
+                    <li><strong>VLAN 20:</strong> Producción (192.168.20.0/24)</li>
+                    <li><strong>VLAN 30:</strong> Sistemas (192.168.30.0/24)</li>
+                    <li><strong>VLAN 150:</strong> Voz (192.168.150.0/24)</li>
+                    <li><strong>Topología Lógica:</strong> Gateway redundante configurado en capa Spine.</li>
+                </ul>
+            </div>
+            <div style="width: 100%; height: 85vh; border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);">
+                <img src="TopologiaSpine&LeafGYE.png" alt="Topología Spine-Leaf GYE" style="width: 100%; height: 100%; object-fit: contain; border-radius: 20px;">
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Diseño Quito (Parte 1)</h2>
+                <h3>Arquitectura Jerárquica de Tres Capas</h3>
+                <ul>
+                    <li><strong>Modelo:</strong> Diseño clásico (Core, Distribución, Acceso).</li>
+                    <li><strong>Roles por Capa:</strong>
+                        <br><strong>1. Acceso (L2):</strong> Conectividad directa de usuarios finales.
+                        <br><strong>2. Distribución (L3):</strong> Aplicación de Políticas, ACLs, Enrutamiento
+                        Inter-VLAN.
+                        <br><strong>3. Core:</strong> Enrutamiento de alta velocidad hacia la WAN.
+                    </li>
+                    <li><strong>Justificación:</strong> Mayor escalabilidad y control granular de políticas para la
+                        matriz corporativa.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Diseño Quito (Parte 2)</h2>
+                <h3>VLANs y Servidores</h3>
+                <ul style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <li><strong>VLAN 40:</strong> Finanzas (.40.0)</li>
+                        <li><strong>VLAN 50:</strong> Producción (.50.0)</li>
+                        <li><strong>VLAN 60:</strong> Sistemas (.60.0)</li>
+                    </div>
+                    <div>
+                        <li><strong>VLAN 100:</strong> Servidores (.100.0) - <span
+                                style="color:var(--accent-orange)">Crítica</span></li>
+                        <li><strong>VLAN 152:</strong> Voz (.152.0)</li>
+                    </div>
+                </ul>
+                <p style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+                    <strong>Servicios Centralizados:</strong> TFTP (192.168.100.10) y DHCP ubicados en capa de
+                    Distribución.
+                </p>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Santo Domingo - Nodo de Tránsito</h2>
+                <h3>Rol Estratégico y Simplificado</h3>
+                <ul>
+                    <li><strong>Función Principal:</strong> Proveer redundancia WAN y ruta de tránsito alterna.</li>
+                    <li><strong>Limitaciones de Diseño:</strong> Sin usuarios de datos corporativos activos.</li>
+                    <li><strong>Seguridad:</strong> Aislamiento estricto de la red.</li>
+                    <li><strong>Segmentación Única:</strong> VLAN 151 (192.168.151.0/24) exclusiva para telefonía de
+                        emergencia.</li>
+                    <li><strong>Conectividad:</strong> Enlaces activos hacia GYE y UIO para OSPF.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>OSPF y Redundancia WAN</h2>
+                <h3>Alta Disponibilidad</h3>
+                <ul>
+                    <li><strong>Protocolo:</strong> OSPF (Open Shortest Path First).</li>
+                    <li><strong>Rutas:</strong>
+                        <br> - Principal: Guayaquil ↔ Quito (Enlace de Alta velocidad).
+                        <br> - Respaldo: Guayaquil ↔ Sto. Domingo ↔ Quito.
+                    </li>
+                    <li><strong>Comportamiento:</strong>
+                        <br>1. Detección automática de caída del enlace principal.
+                        <br>2. Convergencia inmediata y redirección por Santo Domingo.
+                    </li>
+                    <li><strong>Validación:</strong> Pruebas de ping continuas exitosas durante desconexión física.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Seguridad - ACL Implementadas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ACL / Ubicación</th>
+                            <th>Objetivo y Regla</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ACL 1</strong> (Router GYE)</td>
+                            <td><strong>Restricción Internet:</strong> Bloquea tráfico web para Producción (VLAN 20).
+                                Permite el resto.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ACL 2</strong> (Dist. UIO)</td>
+                            <td><strong>Protección TFTP:</strong> Solo permite acceso desde Sistemas (VLAN 30 y 60) al
+                                servidor 192.168.100.10.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ACL 3</strong> (Router STO)</td>
+                            <td><strong>Aislamiento:</strong> Deniega acceso desde STO a todas las redes de datos
+                                corporativas (10, 20, 40, etc.).</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Optimización (Parte 1)</h2>
+                <h3>Problemática: Redundancia vs. Spanning Tree</h3>
+                <ul>
+                    <li><strong>Escenario:</strong> Existencia de múltiples enlaces físicos entre Leaf y Spine.</li>
+                    <li><strong>Comportamiento STP:</strong> Detecta bucles de Capa 2 y bloquea puertos lógicos
+                        automáticamente.</li>
+                    <li><strong>Impacto Negativo:</strong>
+                        <br>- Subutilización masiva del ancho de banda (50% de enlaces inactivos).
+                        <br>- Desperdicio de la inversión en infraestructura.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide image-layout">
+            <div class="content-box">
+                <h2>Optimización (Parte 2)</h2>
+                <h3>Solución: EtherChannel</h3>
+                <ul>
+                    <li><strong>Tecnología:</strong> Agregación de enlaces (LACP).</li>
+                    <li><strong>Resultado:</strong> Agrupación de enlaces físicos en una interfaz lógica (Port-Channel).
+                    </li>
+                    <li><strong>Beneficios:</strong>
+                        <br>✓ Uso simultáneo de todos los cables (Balanceo de carga).
+                        <br>✓ Redundancia transparente.
+                        <br>✓ Ancho de banda duplicado hacia el Core.
+                    </li>
+                </ul>
+            </div>
+            <div style="width: 100%; height: 85vh; border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);">
+                <img src="Etherchannel.png" alt="Configuración EtherChannel (LACP Active)" style="width: 100%; height: 100%; object-fit: contain; border-radius: 20px;">
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Respaldo Operativo en Quito</h2>
+                <h3>Fallo de Hardware (Acceso)</h3>
+                <ul>
+                    <li><strong>Estrategia:</strong> Switch de contingencia ("Cold Standby").</li>
+                    <li><strong>Preparación:</strong> Equipo pre-configurado con las mismas VLANs que el principal.</li>
+                    <li><strong>Procedimiento de Recuperación:</strong>
+                        <br>1. Detección visual de falla del Switch Acceso.
+                        <br>2. Encendido del Switch de Respaldo.
+                        <br>3. Reconexión física de patch cords.
+                        <br>4. Validación inmediata.
+                    </li>
+                    <li><strong>Resultado:</strong> Restauración rápida sin reconfiguración compleja bajo presión.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide image-layout">
+            <div class="content-box">
+                <h2>Telefonía IP</h2>
+                <h3>Validación Multisede</h3>
+                <ul>
+                    <li><strong>Infraestructura:</strong> VLANs dedicadas (150, 151, 152) y DHCP Option 150.</li>
+                    <li><strong>Pruebas Exitosas:</strong>
+                        <br>→ Llamada GYE - UIO (Ruta Principal).
+                        <br>→ Llamada GYE - STO - UIO (Ruta Respaldo).
+                    </li>
+                    <li><strong>Evidencia:</strong> Calidad estable y señalización correcta.</li>
+                </ul>
+            </div>
+            <div style="width: 100%; height: 85vh; border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);">
+                <img src="TelefonosVoIP.png" alt="Teléfonos IP Connected & Ping de Voz" style="width: 100%; height: 100%; object-fit: contain; border-radius: 20px;">
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Respaldo y Recuperación (TFTP)</h2>
+                <h3>Gestión de Configuraciones</h3>
+                <ul>
+                    <li><strong>Repositorio Central:</strong> Servidor TFTP en Quito (VLAN 100).</li>
+                    <li><strong>Escenario 1 (Error Humano):</strong> Restauración rápida de <em>running-config</em>
+                        desde TFTP sin reiniciar equipos.</li>
+                    <li><strong>Escenario 2 (Falla Catastrófica):</strong>
+                        <br>- Reemplazo físico de equipo dañado.
+                        <br>- Carga de IOS y <em>startup-config</em> desde la red.
+                    </li>
+                    <li><strong>Garantía:</strong> Tiempos mínimos de recuperación ante desastres (MTTR).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <h2>Conclusiones y Lecciones</h2>
+                <ul>
+                    <li><strong>Arquitectura:</strong> Spine-Leaf demostró superioridad en escalabilidad para la planta.
+                    </li>
+                    <li><strong>Redundancia:</strong> OSPF garantiza la continuidad del negocio; la caída de un enlace
+                        WAN es imperceptible.</li>
+                    <li><strong>Seguridad:</strong> La segmentación por VLAN y ACLs es vital para proteger activos
+                        críticos.</li>
+                    <li><strong>Optimización:</strong> EtherChannel es indispensable para maximizar el ROI de
+                        infraestructura.</li>
+                    <li style="color: var(--accent-teal); font-weight: bold;">Valor: El diseño cumple con los requisitos
+                        de modernización de Muebles Andinos S.A.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box" style="text-align: center;">
+                <h1 style="font-size: 4rem;">Gracias</h1>
+                <h2 style="font-weight: 300; border: none;">¿Preguntas?</h2>
+                <div style="margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px;">
+                    <p><strong>Muebles Andinos S.A.</strong></p>
+                    <p>Proyecto de Infraestructura de Red 2026</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="prevSlide()">❮</button>
+            <button class="btn" onclick="nextSlide()">❯</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progressBar');
+
+        function showSlide(index) {
+            if (index < 0) index = 0;
+            if (index >= slides.length) index = slides.length - 1;
+
+            currentSlide = index;
+
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = progress + '%';
+        }
+
+        function nextSlide() { showSlide(currentSlide + 1); }
+        function prevSlide() { showSlide(currentSlide - 1); }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        showSlide(0);
+    </script>
+
+</body>
+
+</html>
